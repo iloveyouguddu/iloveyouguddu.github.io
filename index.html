@@ -31,35 +31,47 @@
         linear-gradient(135deg, var(--bg1), var(--bg2));
     }
 
+    /* Keep animation subtle (and avoid mobile flicker from heavy filters) */
     .aurora{
       position:absolute; inset:-22%;
       background: conic-gradient(from 180deg,
-        rgba(255,77,141,.22),
-        rgba(255,210,122,.12),
-        rgba(140,120,255,.12),
-        rgba(255,77,141,.20));
-      filter: blur(85px);
-      opacity:.58;
-      animation: drift 20s ease-in-out infinite alternate;
+        rgba(255,77,141,.18),
+        rgba(255,210,122,.10),
+        rgba(140,120,255,.10),
+        rgba(255,77,141,.16));
+      opacity:.45;
+      animation: drift 26s ease-in-out infinite alternate;
       pointer-events:none;
+      transform: translateZ(0);
+      will-change: transform;
+      filter: blur(70px);
     }
     @keyframes drift{
-      0%{ transform: translate(-2%, -1%) rotate(-10deg) scale(1.05); }
-      100%{ transform: translate(2%, 2%) rotate(12deg) scale(1.12); }
+      0%{ transform: translate3d(-1.2%, -0.8%, 0) rotate(-8deg) scale(1.05); }
+      100%{ transform: translate3d(1.2%, 1.2%, 0) rotate(10deg) scale(1.10); }
     }
 
-    .sparkles{ position:absolute; inset:0; pointer-events:none; opacity:.6; mix-blend-mode:screen; }
+    /* Sparkles: slower + fewer to prevent “blinking” */
+    .sparkles{ position:absolute; inset:0; pointer-events:none; opacity:.35; mix-blend-mode:screen; }
     .sparkle{
-      position:absolute; width:3px; height:3px; border-radius:50%;
-      background: rgba(255,255,255,.9);
-      box-shadow: 0 0 16px rgba(255,255,255,.75);
-      animation: twinkle 4.4s ease-in-out infinite;
+      position:absolute; width:2px; height:2px; border-radius:50%;
+      background: rgba(255,255,255,.85);
+      box-shadow: 0 0 10px rgba(255,255,255,.55);
+      animation: twinkle 8.5s ease-in-out infinite;
+      transform: translateZ(0);
+      will-change: opacity, transform;
     }
     @keyframes twinkle{
-      0%,100%{ transform: scale(.7); opacity:.28; }
-      50%{ transform: scale(1.35); opacity:.95; }
+      0%,100%{ transform: scale(.85); opacity:.20; }
+      50%{ transform: scale(1.2); opacity:.60; }
     }
 
+    /* Reduce motion for mobile / accessibility */
+    @media (prefers-reduced-motion: reduce){
+      .aurora, .sparkle{ animation: none !important; }
+    }
+
+    /* layout */
     .wrap{
       position:relative;
       height:100%;
@@ -75,16 +87,21 @@
       background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
       border: 1px solid rgba(255,255,255,.16);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(var(--blur));
       overflow:hidden;
+      transform: translateZ(0);
     }
+    /* On iOS Safari, backdrop-filter can flicker; use it only if supported & stable */
+    @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))){
+      .frame{ backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur)); }
+    }
+
     .frame::before{
       content:"";
       position:absolute; inset:-2px;
       background:
         radial-gradient(820px 260px at 28% 0%, rgba(255,77,141,.40), transparent 62%),
         radial-gradient(700px 260px at 20% 112%, rgba(255,210,122,.16), transparent 62%);
-      opacity:.95;
+      opacity:.85;
       pointer-events:none;
     }
 
@@ -111,7 +128,7 @@
     .badge .dot{
       width:11px;height:11px;border-radius:50%;
       background: radial-gradient(circle at 30% 30%, #fff, var(--pink));
-      box-shadow: 0 0 20px rgba(255,77,141,.7);
+      box-shadow: 0 0 20px rgba(255,77,141,.6);
     }
     .badge span{
       letter-spacing:.10em;
@@ -142,8 +159,8 @@
 
     .shine{
       height:2px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.58), transparent);
-      opacity:.55;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+      opacity:.5;
       border-radius:999px;
       margin: 18px 0 0;
     }
@@ -159,11 +176,12 @@
       flex-direction:column;
       justify-content:space-between;
       min-height: 330px;
+      transform: translateZ(0);
     }
     .right::after{
       content:"";
       position:absolute; inset:-1px;
-      background: radial-gradient(760px 260px at 70% 25%, rgba(255,77,141,.22), transparent 58%);
+      background: radial-gradient(760px 260px at 70% 25%, rgba(255,77,141,.20), transparent 58%);
       pointer-events:none;
     }
 
@@ -171,30 +189,20 @@
     .prompt h2{ margin:0; font-size: 22px; color: rgba(255,255,255,.92); }
     .prompt p{ margin: 12px 0 0; font-size: 17px; line-height:1.55; color: rgba(255,255,255,.78); }
 
+    /* Make hint shiny but NOT animated (no blinking) */
     .hint{
       margin-top: 14px;
       padding: 12px 14px;
       border-radius: 16px;
       border: 1px dashed rgba(255,210,122,.62);
       background: rgba(255,210,122,.08);
-      font-weight: 800;
+      font-weight: 900;
       font-size: 15px;
       color: rgba(255,255,255,.92);
       text-shadow: 0 10px 30px rgba(0,0,0,.35);
-      box-shadow: 0 0 0 1px rgba(255,210,122,.10) inset;
-    }
-    .hint .spark{
-      display:inline-block;
-      margin-right: 8px;
-      filter: drop-shadow(0 0 16px rgba(255,210,122,.65));
-      animation: pulse 1.4s ease-in-out infinite;
-    }
-    @keyframes pulse{
-      0%,100%{ transform: scale(1); opacity:.85; }
-      50%{ transform: scale(1.06); opacity:1; }
+      box-shadow: 0 0 0 1px rgba(255,210,122,.10) inset, 0 10px 30px rgba(255,210,122,.08);
     }
 
-    /* Buttons: fixed layout, no overlap */
     .actions{
       position:relative;
       z-index:2;
@@ -224,6 +232,7 @@
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       min-width: 190px;
+      transform: translateZ(0);
     }
     .btn:hover{ transform: translateY(-1px); }
     .btn:active{ transform: translateY(1px) scale(.99); }
@@ -236,10 +245,10 @@
         0 14px 38px rgba(0,0,0,.26);
     }
 
-    /* NO: stays in normal flow; we move it with translate (no overlap) */
+    /* NO moves with transform only */
     #btnNo{
       position:relative;
-      transition: transform .14s ease;
+      transition: transform .18s ease;
       will-change: transform;
     }
 
@@ -256,9 +265,11 @@
       display:none;
       place-items:center;
       background: rgba(0,0,0,.42);
-      backdrop-filter: blur(12px);
       z-index:50;
       padding: 22px;
+    }
+    @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))){
+      .overlay{ backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
     }
     .overlay.show{ display:grid; }
 
@@ -270,13 +281,14 @@
       box-shadow: 0 34px 110px rgba(0,0,0,.60);
       overflow:hidden;
       position:relative;
+      transform: translateZ(0);
     }
     .modal::before{
       content:"";
       position:absolute; inset:-2px;
       background:
-        radial-gradient(820px 280px at 18% 15%, rgba(255,77,141,.38), transparent 62%),
-        radial-gradient(720px 260px at 50% 112%, rgba(255,210,122,.14), transparent 62%);
+        radial-gradient(820px 280px at 18% 15%, rgba(255,77,141,.32), transparent 62%),
+        radial-gradient(720px 260px at 50% 112%, rgba(255,210,122,.12), transparent 62%);
       pointer-events:none;
       opacity:.95;
     }
@@ -309,24 +321,31 @@
       font-size: 16px;
     }
 
-    /* heart confetti */
+    /* heart confetti: lighter (fewer elements) */
     .burst-layer{ position:fixed; inset:0; pointer-events:none; z-index:60; overflow:hidden; }
     .confetti{
       position:absolute;
       font-size: 20px;
       opacity:0;
       transform: translate(-50%,-50%) scale(.7);
-      filter: drop-shadow(0 12px 20px rgba(0,0,0,.38));
-      animation: pop 1.2s ease forwards, fall 3.4s ease-in forwards;
+      animation: pop 1.05s ease forwards, fall 3.2s ease-in forwards;
+      will-change: transform, opacity, top, left;
     }
     @keyframes pop{
-      0%{ opacity:0; transform: translate(-50%,-50%) scale(.7) rotate(-18deg); }
-      20%{ opacity:1; transform: translate(-50%,-50%) scale(1.25) rotate(10deg); }
+      0%{ opacity:0; transform: translate(-50%,-50%) scale(.75) rotate(-14deg); }
+      20%{ opacity:1; transform: translate(-50%,-50%) scale(1.18) rotate(8deg); }
       100%{ opacity:1; transform: translate(-50%,-50%) scale(1.0) rotate(0deg); }
     }
     @keyframes fall{
       0%{ top: var(--y); left: var(--x); }
       100%{ top: 110vh; left: calc(var(--x) + var(--dx)); opacity:0; }
+    }
+
+    /* On small screens, disable continuous animations completely to stop flicker */
+    @media (max-width: 600px){
+      .aurora{ animation: none; }
+      .sparkle{ animation: none; opacity:.22; }
+      .sparkles{ opacity:.25; }
     }
   </style>
 </head>
@@ -357,8 +376,7 @@
             </p>
 
             <div class="hint">
-              <span class="spark">✨</span>
-              Try clicking <b>No</b> (it might be a little shy)
+              ✨ <span style="filter:drop-shadow(0 0 16px rgba(255,210,122,.55));">Try clicking <b>No</b></span> (it might be a little shy)
             </div>
 
             <div class="divider"></div>
@@ -396,22 +414,25 @@
         </div>
 
         <div class="closeRow">
-          <button class="btn-close" id="closeBtn" type="button">Meet me soon my Best baby boy! 🥹</button>
+          <button class="btn-close" id="closeBtn" type="button">Okayyy 🥹</button>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // sparkles
+    // Create fewer sparkles (mobile friendly)
     const sparkles = document.getElementById('sparkles');
-    for(let i=0;i<34;i++){
+    const isSmall = window.matchMedia('(max-width: 600px)').matches;
+    const sparkleCount = isSmall ? 16 : 30;
+
+    for(let i=0;i<sparkleCount;i++){
       const s=document.createElement('div');
       s.className='sparkle';
       s.style.left = Math.random()*100 + '%';
       s.style.top  = Math.random()*100 + '%';
-      s.style.animationDelay = (Math.random()*4.4) + 's';
-      s.style.animationDuration = (3.4 + Math.random()*2.6) + 's';
+      s.style.animationDelay = (Math.random()*8.5) + 's';
+      s.style.animationDuration = (7.5 + Math.random()*4.0) + 's';
       sparkles.appendChild(s);
     }
 
@@ -420,11 +441,11 @@
       modeEl.textContent = (e.pointerType === 'touch') ? 'touch' : e.pointerType;
     }, {passive:true});
 
-    // NO button: gentle dodge using translate (keeps layout, avoids overlap)
+    // NO button: gentle dodge using translate (no layout reflow => less flicker)
     const arena = document.getElementById('arena');
     const btnNo = document.getElementById('btnNo');
 
-    let tx = 0, ty = 0; // current translate offsets
+    let tx = 0, ty = 0;
 
     function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
 
@@ -432,28 +453,29 @@
       const a = arena.getBoundingClientRect();
       const b = btnNo.getBoundingClientRect();
 
-      // Allowed translate so the button stays inside arena
       const minX = a.left - b.left + 8;
       const maxX = a.right - b.right - 8;
       const minY = a.top - b.top + 8;
       const maxY = a.bottom - b.bottom - 8;
 
-      // small step (not jumpy)
-      let stepX = (Math.random()<0.5?-1:1) * (24 + Math.random()*28); // 24..52
-      let stepY = (Math.random()<0.5?-1:1) * (12 + Math.random()*20); // 12..32
+      // smaller movement on mobile
+      const baseX = isSmall ? 18 : 24;
+      const baseY = isSmall ? 10 : 12;
 
-      // nudge away from pointer slightly if provided
+      let stepX = (Math.random()<0.5?-1:1) * (baseX + Math.random()*(isSmall?18:28));
+      let stepY = (Math.random()<0.5?-1:1) * (baseY + Math.random()*(isSmall?14:20));
+
       if(pointerX !== null && pointerY !== null){
         const cx = b.left + b.width/2;
         const cy = b.top + b.height/2;
-        if (Math.abs(pointerX - cx) < 140) stepX += (pointerX < cx ? 34 : -34);
-        if (Math.abs(pointerY - cy) < 90)  stepY += (pointerY < cy ? 22 : -22);
+        if (Math.abs(pointerX - cx) < 140) stepX += (pointerX < cx ? (isSmall?22:34) : (isSmall?-22:-34));
+        if (Math.abs(pointerY - cy) < 90)  stepY += (pointerY < cy ? (isSmall?14:22) : (isSmall?-14:-22));
       }
 
       tx = clamp(tx + stepX, minX, maxX);
       ty = clamp(ty + stepY, minY, maxY);
 
-      btnNo.style.transform = `translate(${tx}px, ${ty}px)`;
+      btnNo.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
     }
 
     function onAttempt(e){
@@ -464,12 +486,11 @@
       gentleDodge(x, y);
     }
 
-    // Trigger dodge only when she tries to press/tap No
     btnNo.addEventListener('pointerdown', onAttempt);
     btnNo.addEventListener('touchstart', onAttempt, {passive:false});
     btnNo.addEventListener('click', (e)=>{ e.preventDefault(); onAttempt(e); });
 
-    // YES: modal + hearts
+    // YES: modal + lighter hearts
     const btnYes = document.getElementById('btnYes');
     const overlay = document.getElementById('overlay');
     const closeBtn = document.getElementById('closeBtn');
@@ -477,16 +498,16 @@
 
     function confettiHearts(centerX, centerY){
       const glyphs = ["💖","💘","💝","💞","💕","❤️","🩷","✨"];
-      const count = 44;
+      const count = isSmall ? 22 : 38;
 
       for(let i=0;i<count;i++){
         const c=document.createElement('div');
         c.className='confetti';
         c.textContent = glyphs[(Math.random()*glyphs.length)|0];
 
-        const x = centerX + (Math.random()*50 - 25);
-        const y = centerY + (Math.random()*50 - 25);
-        const dx = (Math.random()*260 - 130) + 'px';
+        const x = centerX + (Math.random()*46 - 23);
+        const y = centerY + (Math.random()*46 - 23);
+        const dx = (Math.random()*(isSmall?180:240) - (isSmall?90:120)) + 'px';
 
         c.style.setProperty('--x', x + 'px');
         c.style.setProperty('--y', y + 'px');
@@ -495,11 +516,11 @@
         c.style.left = x + 'px';
         c.style.top  = y + 'px';
 
-        c.style.animationDelay = (Math.random()*0.06) + 's';
-        c.style.fontSize = (18 + Math.random()*18) + 'px';
+        c.style.animationDelay = (Math.random()*0.05) + 's';
+        c.style.fontSize = (18 + Math.random()*(isSmall?12:18)) + 'px';
 
         burstLayer.appendChild(c);
-        setTimeout(()=>c.remove(), 3800);
+        setTimeout(()=>c.remove(), 3600);
       }
     }
 
